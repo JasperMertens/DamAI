@@ -1,21 +1,20 @@
 package oxo;
 
-import java.io.IOException;
-import java.util.Scanner;
+import java.util.ArrayList;
 
 public class OxoController {
 	
-	private char[][] board = new char[3][3];
-	private char currChar = 'o';
-	private Scanner sc = new Scanner(System.in);
+	private char[][] board;
+	private char currChar = 'x';
+	private OxoPlayer x_player;
+	private OxoPlayer o_player;
+	
 	private int moveCount = 0;
 
 	public OxoController() {
-		for (int i=0; i<this.board.length; i++) {
-			for (int j=0; j<this.board[i].length; j++) {
-				this.board[i][j] = '_';
-			}
-		}
+		this.board = createEmptyBoard();
+		this.x_player = new HumanPlayer(this,'x');
+		this.o_player = new IRLearning(this,'o');
 	}	
 
 	public static void main(String[] args) {
@@ -23,7 +22,21 @@ public class OxoController {
 		oc.go();
 	}
 	
-	public void go() {
+	public static char[][] createEmptyBoard() {
+		char[][] result = new char[3][3];
+		for (int i=0; i<3; i++) {
+			for (int j=0; j<3; j++) {
+				result[i][j] = '_';
+			}
+		}
+		return result;
+	}
+	
+	public char[][] getBoard() {
+		return this.board;
+	}
+	
+	private void go() {
 		drawBoard();
 		while (!this.isFinished()) {
 			executeTurn();
@@ -32,9 +45,9 @@ public class OxoController {
 		}
 	}
 	
-	public void executeTurn() {
+	private void executeTurn() {
 		System.out.println(this.currChar+"-player his turn.");
-		int move = getMoveOf(this.currChar+"-player");
+		int move = getMoveOf(this.getCurrPlayer());
 		try {
 			executeMove(move);
 			this.moveCount++;
@@ -43,22 +56,11 @@ public class OxoController {
 		}
 	}
 	
-	public int getMoveOf(String player) {
-		System.out.println("Enter your move "+ player);
-		try {
-	        int move = Integer.parseInt(this.sc.nextLine());
-		    if (move<0 || move>8) {
-		    	throw new IOException();
-		    }
-		    return move;
-		}
-		catch (IOException e){
-		    System.out.println("Error reading from user, try again");
-		    return getMoveOf(player);
-		}
+	private int getMoveOf(OxoPlayer player) {
+		return player.getMove();
 	}
 	
-	public void executeMove(int move) throws IllegalArgumentException {
+	private void executeMove(int move) throws IllegalArgumentException {
 		int i = Math.floorDiv(move, 3);
 		int j = Math.floorMod(move, 3);
 		if (this.board[i][j] != '_') {
@@ -66,9 +68,11 @@ public class OxoController {
 			throw new IllegalArgumentException();
 		}
 		this.board[i][j] = this.currChar;
+		this.x_player.notifyOnMove(move);
+		this.o_player.notifyOnMove(move);
 	}
 	
-	public void switchCurrChar() {
+	private void switchCurrChar() {
 		if (this.currChar == 'x') {
 			this.currChar = 'o';
 		} else {
@@ -76,7 +80,15 @@ public class OxoController {
 		}
 	}
 	
-	public void drawBoard() {
+	private OxoPlayer getCurrPlayer() {
+		if (this.currChar == 'x') {
+			return this.x_player;
+		} else {
+			return this.o_player;
+		}
+	}
+	
+	private void drawBoard() {
 		System.out.println();
 		for (int i=0; i<this.board.length; i++) {
 			for (int j=0; j<this.board[i].length-1; j++) {
@@ -88,25 +100,10 @@ public class OxoController {
 		System.out.println();
 	}
 	
-	public boolean isFinished() {
-		// Check rows
-		for (char[] row : this.board) {
-			if (row[0] != '_' && row[0] == row[1] && row[1] == row[2]) {
-				System.out.println(row[0]+"-player has won1!");
-				return true;
-			}
-		}
-		// Check columns
-		int[][] columns = { {0,3,6}, {1,4,7}, {2,5,8} };
-		for (int[] col : columns) {
-			if (this.threeInARow(col)) {
-				return true;
-			}
-		}
-		// Check diagonals
-		int[][] diagonals = { {0,4,8}, {2,4,6} };
-		for (int[] diag : diagonals) {
-			if (this.threeInARow(diag)) {
+	private boolean isFinished() {
+		for (char[] line : this.getRowColDiagChars()) {
+			if (line[0] != '_' && line[0] == line[1] && line[1] == line[2]) {
+				System.out.println(line[0]+"-player has won!");
 				return true;
 			}
 		}
@@ -117,18 +114,35 @@ public class OxoController {
 		return false;			
 	}
 	
-	public boolean threeInARow(int[] intArr) {
-		char[] charArr = new char[3];
-		for (int i=0; i<3; i++) {
+	public ArrayList<char[]> getRowColDiagChars() {
+		ArrayList<char[]> result = new ArrayList<>();
+		// Add rows
+		for (char[] row : this.board) {
+			result.add(row);
+		}
+		// Add columns
+		int[][] columns = { {0,3,6}, {1,4,7}, {2,5,8} };
+		for (int[] col : columns) {
+			char[] charArr = this.mapToChar(col);
+			result.add(charArr);
+			
+		}
+		// Add diagonals
+		int[][] diagonals = { {0,4,8}, {2,4,6} };
+		for (int[] diag : diagonals) {
+			char[] charArr = this.mapToChar(diag);
+			result.add(charArr);
+		}
+		return result;
+	}
+	
+	public char[] mapToChar(int[] intArr) {
+		char[] charArr = new char[intArr.length];
+		for (int i=0; i<intArr.length; i++) {
 			int row = Math.floorDiv(intArr[i], 3);
 			int col = Math.floorMod(intArr[i], 3);
 			charArr[i] = this.board[row][col];
 		}
-		if (charArr[0] != '_' && charArr[0] == charArr[1] && charArr[1] == charArr[2]) {
-			System.out.println(charArr[0]+"-player has won1!");
-			return true;
-		}
-		return false;
+		return charArr;
 	}
-
 }
