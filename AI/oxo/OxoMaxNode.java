@@ -1,29 +1,24 @@
-package treeSearch;
-import environment.Board;
-import game.PieceColor;
-import moves.Move;
+package oxo;
 
-public class MaxNode extends TreeNode {
+public class OxoMaxNode extends OxoTreeNode {
 	
 
-	public MaxNode(Board board, Move move, PieceColor pieceColor) {
-		super(board, move, pieceColor);
+	public OxoMaxNode(OxoBoard board, Integer position, char c, IRLearning ai) {
+		super(board, position, c, ai);
 	}
 	
-	public MaxNode(TreeNode parent, Board board, Move move, PieceColor pieceColor) {
-		super(parent, board, move, pieceColor);
+	public OxoMaxNode(OxoTreeNode parent, OxoBoard board, int position, char c, IRLearning ai) {
+		super(parent, board, position, c, ai);
 	}
 
 	@Override
-	public TreeNode expandOne() {
+	public OxoTreeNode expandOne() {
 		if (super.isFullyExpanded())
 			throw new IllegalStateException();
-		Move move = super.unexpandedMoves.remove(0);
-		Board boardCopy = super.isFullyExpanded() ? null : super.board.copyBoard();
-		move.execute();
-		TreeNode result = new MinNode(this, super.board, move,
-				super.pieceColor.equals(PieceColor.WHITE) ? PieceColor.BLACK : PieceColor.WHITE);
-		super.board = boardCopy;
+		Integer position = super.unexpandedMoves.remove(0);
+		OxoBoard boardCopy = super.board.copyBoard();
+		boardCopy.executeMove(position, super.c);
+		OxoTreeNode result = new OxoMinNode(this, boardCopy, position, super.c=='x' ? 'o' : 'x', super.ai);
 		return result;
 	}
 
@@ -40,7 +35,7 @@ public class MaxNode extends TreeNode {
 				//		max(the maximum value of all its children, alpha from parent nodes)
 		int N = this.nbOfChildren;
 		for (int i=0; i<N; i++) {
-			TreeNode child = expandOne();
+			OxoTreeNode child = expandOne();
 			alpha = Math.max(alpha, child.alphaBetaMinMax(depth-1, alpha, beta));
 			// Prune
 			// Alpha can only grow larger and beta can only become smaller.

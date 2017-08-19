@@ -1,10 +1,8 @@
 package oxo;
 
-import java.util.ArrayList;
-
 public class OxoController {
 	
-	private char[][] board;
+	private OxoBoard board;
 	private char currChar = 'x';
 	private OxoPlayer x_player;
 	private OxoPlayer o_player;
@@ -12,7 +10,7 @@ public class OxoController {
 	private int moveCount = 0;
 
 	public OxoController() {
-		this.board = createEmptyBoard();
+		this.board = new OxoBoard();
 		this.x_player = new HumanPlayer(this,'x');
 		this.o_player = new IRLearning(this,'o');
 	}	
@@ -32,7 +30,7 @@ public class OxoController {
 		return result;
 	}
 	
-	public char[][] getBoard() {
+	public OxoBoard getBoard() {
 		return this.board;
 	}
 	
@@ -60,16 +58,10 @@ public class OxoController {
 		return player.getMove();
 	}
 	
-	private void executeMove(int move) throws IllegalArgumentException {
-		int i = Math.floorDiv(move, 3);
-		int j = Math.floorMod(move, 3);
-		if (this.board[i][j] != '_') {
-			System.out.println("Invalid move, try again");
-			throw new IllegalArgumentException();
-		}
-		this.board[i][j] = this.currChar;
-		this.x_player.notifyOnMove(move);
-		this.o_player.notifyOnMove(move);
+	private void executeMove(int position) throws IllegalArgumentException {
+		this.board.executeMove(position, this.currChar);
+		this.x_player.notifyOnMove(position);
+		this.o_player.notifyOnMove(position);
 	}
 	
 	private void switchCurrChar() {
@@ -89,19 +81,11 @@ public class OxoController {
 	}
 	
 	private void drawBoard() {
-		System.out.println();
-		for (int i=0; i<this.board.length; i++) {
-			for (int j=0; j<this.board[i].length-1; j++) {
-				System.out.print(this.board[i][j]);
-				System.out.print(" ");
-			}
-			System.out.println(this.board[i][2]);
-		}
-		System.out.println();
+		this.board.draw();
 	}
 	
 	private boolean isFinished() {
-		for (char[] line : this.getRowColDiagChars()) {
+		for (char[] line : this.board.getRowColDiagChars()) {
 			if (line[0] != '_' && line[0] == line[1] && line[1] == line[2]) {
 				System.out.println(line[0]+"-player has won!");
 				return true;
@@ -112,37 +96,5 @@ public class OxoController {
 			return true;
 		}
 		return false;			
-	}
-	
-	public ArrayList<char[]> getRowColDiagChars() {
-		ArrayList<char[]> result = new ArrayList<>();
-		// Add rows
-		for (char[] row : this.board) {
-			result.add(row);
-		}
-		// Add columns
-		int[][] columns = { {0,3,6}, {1,4,7}, {2,5,8} };
-		for (int[] col : columns) {
-			char[] charArr = this.mapToChar(col);
-			result.add(charArr);
-			
-		}
-		// Add diagonals
-		int[][] diagonals = { {0,4,8}, {2,4,6} };
-		for (int[] diag : diagonals) {
-			char[] charArr = this.mapToChar(diag);
-			result.add(charArr);
-		}
-		return result;
-	}
-	
-	public char[] mapToChar(int[] intArr) {
-		char[] charArr = new char[intArr.length];
-		for (int i=0; i<intArr.length; i++) {
-			int row = Math.floorDiv(intArr[i], 3);
-			int col = Math.floorMod(intArr[i], 3);
-			charArr[i] = this.board[row][col];
-		}
-		return charArr;
 	}
 }
