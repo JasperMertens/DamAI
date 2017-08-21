@@ -2,11 +2,11 @@ package oxo;
 
 public class OxoMinNode extends OxoTreeNode {
 	
-	public OxoMinNode(OxoBoard board, Integer position, char c, IRLearning ai) {
-		super(board, position, c, ai);
+	public OxoMinNode(OxoBoard board, char c, ReinfLearning ai) {
+		super(board, c, ai);
 	}
 	
-	public OxoMinNode(OxoTreeNode parent, OxoBoard board, int position, char c, IRLearning ai) {
+	public OxoMinNode(OxoTreeNode parent, OxoBoard board, int position, char c, ReinfLearning ai) {
 		super(parent, board, position, c, ai);
 	}
 
@@ -22,20 +22,29 @@ public class OxoMinNode extends OxoTreeNode {
 	}
 
 	@Override
-	public float alphaBetaMinMax(int depth, float alpha, float beta) {
-		// base case
+	public SearchResult alphaBetaMinMax(int depth, double alpha, double beta) {
+		// base cases
+		FinishedCheck fc = super.board.isFinished();
+		if (fc.result()){
+			return new SearchResult(super.ai.getEndReward(fc.getWinner()), super.position);
+		}
 		if (depth==0) {
-			return getValue();
+			return new SearchResult(getValue(), super.position);
 		}
 
 		// Beta is the minimal heuristic value that has been explored by this node
 		//		or one of its parent nodes. The beta value of a node that has
 		//		no more unexplored children is 
-		//		min(the minimum value of all its children, beta from parent nodes)
+		//		min(the minimum value of all its children, beta from parent nodes).
+		//		Beta is the best already explored option along the path to the root
+		//		for the minimizer.
 		int N = this.nbOfChildren;
+		int position = -1;
 		for (int i=0; i<N; i++) {
 			OxoTreeNode child = expandOne();
-			beta = Math.min(beta, child.alphaBetaMinMax(depth-1, alpha, beta));
+			SearchResult sr = child.alphaBetaMinMax(depth-1, alpha, beta);
+			position = sr.getMove();
+			beta = Math.min(beta, sr.getValue());
 			// Prune
 			// Alpha can only grow larger and beta can only become smaller.
 			// The rest of the children don't have to be explored because a parent node
@@ -43,6 +52,6 @@ public class OxoMinNode extends OxoTreeNode {
 			if (alpha >= beta)
 				break;
 		}
-		return beta;
+		return new SearchResult(beta, position);
 	}
 }

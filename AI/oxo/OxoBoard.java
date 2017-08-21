@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class OxoBoard {
 	
 	private char[][] charTable;
+	private ArrayList<Integer> moveHistory = new ArrayList<>();
 
 	public OxoBoard() {
 		char[][] result = new char[3][3];
@@ -16,12 +17,18 @@ public class OxoBoard {
 		this.charTable = result;
 	}
 	
-	public OxoBoard(char[][] charTable) {
+	public OxoBoard(char[][] charTable, ArrayList<Integer> moveHistory) {
 		this.charTable = charTable;
+		this.moveHistory = moveHistory;
 	}
 	
 	public OxoBoard copyBoard() {
-		return new OxoBoard(this.charTable);
+		char[][] tableCopy = new char[3][3];
+		for (int i=0; i<3; i++) {
+			tableCopy[i] = this.charTable[i].clone();
+		}
+		ArrayList<Integer> moveHistoryCopy = new ArrayList<>(this.moveHistory);
+		return new OxoBoard(tableCopy, moveHistoryCopy);
 	}
 	
 	public static int getRow(int position) {
@@ -36,14 +43,31 @@ public class OxoBoard {
 		return this.charTable;
 	}
 	
+	public ArrayList<Integer> getMoveHistory() {
+		return moveHistory;
+	}
+
 	public void executeMove(int position, char c) throws IllegalArgumentException {
 		int i = OxoBoard.getRow(position);
 		int j = OxoBoard.getColumn(position);
 		if (this.charTable[i][j] != '_') {
-			System.out.println("Invalid move, try again");
+			System.out.println("Invalid move "+position+", try again");
 			throw new IllegalArgumentException();
 		}
+		this.moveHistory.add(position);
 		this.charTable[i][j] = c;
+	}
+	
+	public void undoMove(int position, char c)throws IllegalArgumentException {
+		int i = OxoBoard.getRow(position);
+		int j = OxoBoard.getColumn(position);
+		if (this.charTable[i][j] != '_') {
+			System.out.println("Invalid undo!");
+			throw new IllegalArgumentException();
+		}
+		int index = this.moveHistory.indexOf(position);
+		this.moveHistory.remove(index);
+		this.charTable[i][j] = '_';
 	}
 	
 	public void draw() {
@@ -130,8 +154,26 @@ public class OxoBoard {
 	}
 
 	public ArrayList<Integer> getPossibleMoves() {
-		// TODO Auto-generated method stub
-		return null;
+		ArrayList<Integer> result = new ArrayList<>();
+		for (int i=0; i<9; i++) {
+			if (!this.moveHistory.contains(i)) {
+				result.add(i);
+			}
+		}
+		return result;
+	}
+	
+	public FinishedCheck isFinished() {
+		for (char[] line : this.getRowColDiagChars()) {
+			if (line[0] != '_' && line[0] == line[1] && line[1] == line[2]) {
+				return new FinishedCheck(true, line[0],line[0]+"-player has won!");
+			}
+		}
+		if (this.getPossibleMoves().isEmpty()) {
+			System.out.println("It's a draw!");
+			return new FinishedCheck(true, '-', "It's a draw!");
+		}
+		return new FinishedCheck(false, '-', "");			
 	}
 
 }

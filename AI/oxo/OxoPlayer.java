@@ -6,6 +6,8 @@ public interface OxoPlayer {
 	
 	public int getMove();
 	
-	public void notifyOnMove(int move);
+	public void notifyOnMove(int move, char c);
+
+	public void notifyOnEnd(char winner);
 
 }

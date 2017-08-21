@@ -5,12 +5,10 @@ import java.util.Scanner;
 
 public class HumanPlayer implements OxoPlayer {
 
-	private OxoController oc;
 	private char c;
 	private Scanner sc = new Scanner(System.in);
 
-	public HumanPlayer(OxoController oc, char c) {
-		this.oc = oc;
+	public HumanPlayer(char c) {
 		this.c = c;
 	}
 	
@@ -36,9 +34,18 @@ public class HumanPlayer implements OxoPlayer {
 	}
 
 	@Override
-	public void notifyOnMove(int move) {
+	public void notifyOnMove(int move, char c) {
 		System.out.println("Move "+move+" executed.");
 		
+	}
+
+	@Override
+	public void notifyOnEnd(char winner) {
+		if (this.c == winner) {
+			System.out.println("You won!");
+		} else {
+			System.out.println("You lost.");
+		}
 	}
 
 

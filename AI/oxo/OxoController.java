@@ -7,12 +7,10 @@ public class OxoController {
 	private OxoPlayer x_player;
 	private OxoPlayer o_player;
 	
-	private int moveCount = 0;
-
 	public OxoController() {
 		this.board = new OxoBoard();
-		this.x_player = new HumanPlayer(this,'x');
-		this.o_player = new IRLearning(this,'o');
+		this.x_player = new HumanPlayer('x');
+		this.o_player = new ReinfLearning('o', "AI/oxo/weights.txt");
 	}	
 
 	public static void main(String[] args) {
@@ -30,17 +28,23 @@ public class OxoController {
 		return result;
 	}
 	
-	public OxoBoard getBoard() {
-		return this.board;
+	public OxoBoard copyBoard() {
+		return this.board.copyBoard();
 	}
 	
 	private void go() {
 		drawBoard();
-		while (!this.isFinished()) {
+		FinishedCheck finCheck = this.board.isFinished();
+		while (!finCheck.result()) {
 			executeTurn();
-			switchCurrChar();
+			finCheck = this.board.isFinished();
 			drawBoard();
+			switchCurrChar();
 		}
+		finCheck.printMessage();
+		this.x_player.notifyOnEnd(finCheck.getWinner());
+		this.o_player.notifyOnEnd(finCheck.getWinner());
+		
 	}
 	
 	private void executeTurn() {
@@ -48,7 +52,6 @@ public class OxoController {
 		int move = getMoveOf(this.getCurrPlayer());
 		try {
 			executeMove(move);
-			this.moveCount++;
 		} catch (IllegalArgumentException exc) {
 			executeTurn();
 		}
@@ -60,8 +63,8 @@ public class OxoController {
 	
 	private void executeMove(int position) throws IllegalArgumentException {
 		this.board.executeMove(position, this.currChar);
-		this.x_player.notifyOnMove(position);
-		this.o_player.notifyOnMove(position);
+		this.x_player.notifyOnMove(position, this.currChar);
+		this.o_player.notifyOnMove(position, this.currChar);
 	}
 	
 	private void switchCurrChar() {
@@ -84,17 +87,4 @@ public class OxoController {
 		this.board.draw();
 	}
 	
-	private boolean isFinished() {
-		for (char[] line : this.board.getRowColDiagChars()) {
-			if (line[0] != '_' && line[0] == line[1] && line[1] == line[2]) {
-				System.out.println(line[0]+"-player has won!");
-				return true;
-			}
-		}
-		if (this.moveCount == 9) {
-			System.out.println("It's a draw!");
-			return true;
-		}
-		return false;			
-	}
 }
