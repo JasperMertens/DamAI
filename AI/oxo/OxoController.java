@@ -9,7 +9,7 @@ public class OxoController {
 	
 	public OxoController() {
 		this.board = new OxoBoard();
-		this.x_player = new HumanPlayer('x');
+		this.x_player = new ReinfLearning('x', "AI/oxo/weights2.txt");
 		this.o_player = new ReinfLearning('o', "AI/oxo/weights.txt");
 	}	
 

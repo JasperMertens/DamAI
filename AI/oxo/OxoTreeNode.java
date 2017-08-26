@@ -79,10 +79,10 @@ public abstract class OxoTreeNode {
 	 * Standard backtracking alphaBetaMinMax algorithm
 	 * - depth gives the search depth still left to explore and is counted down along the way
 	 * - returns the best possible reliably obtainable heuristic value at the given depth
-	 * Initialize: alpha=-Infinity, Beta=+Infinity
+	 * Initialize: alpha= new SearchResult(-Infinity, -1), Beta= new SearchResult(+Infinity, -1);
 	 * TODO: Optimize search ordering to improve cut-off speed
 	 * 		narrow search window at endgame
 	 */
-	public abstract SearchResult alphaBetaMinMax(int depth, double alpha, double beta);
+	public abstract SearchResult alphaBetaMinMax(int depth, SearchResult alpha, SearchResult beta);
 		
 }

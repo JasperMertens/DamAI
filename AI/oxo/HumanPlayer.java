@@ -43,6 +43,8 @@ public class HumanPlayer implements OxoPlayer {
 	public void notifyOnEnd(char winner) {
 		if (this.c == winner) {
 			System.out.println("You won!");
+		} else if (winner == '-'){
+			System.out.println("Draw.");
 		} else {
 			System.out.println("You lost.");
 		}

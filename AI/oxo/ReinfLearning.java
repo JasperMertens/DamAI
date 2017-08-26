@@ -43,8 +43,9 @@ public class ReinfLearning implements OxoPlayer {
 	
 	@Override
 	public int getMove() {
-		OxoMaxNode maxNode = new OxoMaxNode(this.board, this.c, this);
-		SearchResult searchResult = maxNode.alphaBetaMinMax(3, -Double.MAX_VALUE, Double.MAX_VALUE);
+		OxoMaxNode maxNode = new OxoMaxNode(this.board,this.c, this);
+		SearchResult searchResult = maxNode.alphaBetaMinMax(4, new SearchResult(-Double.MAX_VALUE, -1)
+									, new SearchResult(Double.MAX_VALUE, -1));
 		System.out.println("BoardEvalutation: "+ searchResult.getValue());
 		return searchResult.getMove();
 	}

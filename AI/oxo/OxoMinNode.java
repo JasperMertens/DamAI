@@ -22,7 +22,7 @@ public class OxoMinNode extends OxoTreeNode {
 	}
 
 	@Override
-	public SearchResult alphaBetaMinMax(int depth, double alpha, double beta) {
+	public SearchResult alphaBetaMinMax(int depth, SearchResult alpha, SearchResult beta) {
 		// base cases
 		FinishedCheck fc = super.board.isFinished();
 		if (fc.result()){
@@ -39,19 +39,20 @@ public class OxoMinNode extends OxoTreeNode {
 		//		Beta is the best already explored option along the path to the root
 		//		for the minimizer.
 		int N = this.nbOfChildren;
-		int position = -1;
 		for (int i=0; i<N; i++) {
 			OxoTreeNode child = expandOne();
-			SearchResult sr = child.alphaBetaMinMax(depth-1, alpha, beta);
-			position = sr.getMove();
-			beta = Math.min(beta, sr.getValue());
+			SearchResult childSr = child.alphaBetaMinMax(depth-1, alpha, beta);
+			beta = SearchResult.min(beta, childSr);
 			// Prune
 			// Alpha can only grow larger and beta can only become smaller.
 			// The rest of the children don't have to be explored because a parent node
 			// has already found another equal or preferred path.
-			if (alpha >= beta)
+			if (alpha.getValue() >= beta.getValue())
 				break;
 		}
-		return new SearchResult(beta, position);
+		if (this.parent != null) {
+			beta = new SearchResult(beta.getValue(), super.position);
+		}
+		return beta;
 	}
 }

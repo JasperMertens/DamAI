@@ -170,10 +170,9 @@ public class OxoBoard {
 			}
 		}
 		if (this.getPossibleMoves().isEmpty()) {
-			System.out.println("It's a draw!");
 			return new FinishedCheck(true, '-', "It's a draw!");
 		}
 		return new FinishedCheck(false, '-', "");			
 	}
-
+	
 }
